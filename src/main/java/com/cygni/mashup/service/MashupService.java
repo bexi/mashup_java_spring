@@ -1,8 +1,8 @@
 package com.cygni.mashup.service;
 
 import com.cygni.mashup.domain.Artist;
-import com.cygni.mashup.repository.*;
 
+import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;

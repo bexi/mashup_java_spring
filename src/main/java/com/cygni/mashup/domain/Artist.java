@@ -1,6 +1,6 @@
 package com.cygni.mashup.domain;
 
-import com.cygni.mashup.repository.ReleaseGroup;
+import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
 
 import java.util.List;
 

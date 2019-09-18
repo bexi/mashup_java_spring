@@ -1,4 +1,4 @@
-package com.cygni.mashup.repository;
+package com.cygni.mashup.repository.musicbrainzdata;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

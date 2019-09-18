@@ -1,6 +1,9 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.repository.*;
+import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
+import com.cygni.mashup.repository.musicbrainzdata.Relation;
+import com.cygni.mashup.repository.wikidata.Entity;
+import com.cygni.mashup.repository.wikidata.WikiData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.util.Pair;

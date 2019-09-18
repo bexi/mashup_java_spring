@@ -1,4 +1,4 @@
-package com.cygni.mashup.repository;
+package com.cygni.mashup.repository.wikidata;
 
 import java.util.List;
 

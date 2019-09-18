@@ -1,6 +1,6 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.repository.MusicbrainzData;
+import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
