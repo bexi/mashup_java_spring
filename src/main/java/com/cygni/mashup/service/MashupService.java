@@ -5,10 +5,11 @@ import com.cygni.mashup.domain.Artist;
 import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -27,13 +28,13 @@ public class MashupService {
 
         // TODO Combine Data from all API-calls
         // wait for information from musicbrainz - this info is needed to make the later api-calls
-        MusicbrainzData musicbrainzData = (MusicbrainzData) (new MusicBrainzService()).getMusicBrainzInformation(mbid).get();
+        MusicbrainzData musicbrainzData = (MusicbrainzData) (new MusicBrainzService()).getMusicBrainzInformation(mbid).get(); // blocking
 
         artist.setAlbums(musicbrainzData.getReleaseGroups());
         musicbrainzData.setMbid(mbid);
 
-        String description = (new WikipediaService()).getWikipediaDescription(musicbrainzData); // TODO: make async
-        List<String> imageUrl = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO: implement and make async
+        String description = (String)(new WikipediaService()).getWikipediaDescription(musicbrainzData).get(); // TODO: make async
+        //List<String> imageUrl = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO: implement and make async
 
         // Wait for the last API call to finish
 
@@ -43,4 +44,6 @@ public class MashupService {
 
         return CompletableFuture.completedFuture(artist);
     }
+
+
 }

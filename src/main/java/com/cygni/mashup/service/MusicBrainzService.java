@@ -1,6 +1,7 @@
 package com.cygni.mashup.service;
 
 import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -9,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 @Service
 public class MusicBrainzService {
 
+    @Async
     public CompletableFuture getMusicBrainzInformation(String mbid){
         String url1 = "http://musicbrainz.org/ws/2/artist/";
         String url2 = "?inc=url-rels+release-groups&fmt=json";

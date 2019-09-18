@@ -10,11 +10,13 @@ import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class WikipediaService {
     private static final String WIKIPEDIA_TYPE = "wikipedia";
@@ -22,7 +24,8 @@ public class WikipediaService {
 
     Logger logger = LoggerFactory.getLogger(MashupService.class);
 
-    public String getWikipediaDescription(MusicbrainzData musicbrainzData){
+    @Async
+    public CompletableFuture getWikipediaDescription(MusicbrainzData musicbrainzData){
 
         String ID = getWikipediaID(musicbrainzData.getRelations());
         String url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=" + ID;
@@ -44,7 +47,7 @@ public class WikipediaService {
         }
         String description = getDescriptionFromJson(root);
 
-        return description;
+        return CompletableFuture.completedFuture(description);
     }
 
     private static List<String> getKeys(JsonNode data) {
