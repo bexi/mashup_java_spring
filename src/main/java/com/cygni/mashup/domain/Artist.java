@@ -11,21 +11,26 @@ public class Artist {
     @JsonProperty("id")
     private String mbid;
 
-    @JsonProperty("country")
-    private String country;
-
     @JsonProperty("release-groups")
     private List<ReleaseGroup> releaseGroups;
 
     @JsonProperty("relations")
     private List<Relation> relations;
 
-    public String getCountry() {
-        return country;
+    public String getMbid() {
+        return mbid;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
+    public void setMbid(String mbid) {
+        this.mbid = mbid;
+    }
+
+    public List<Relation> getRelations() {
+        return relations;
+    }
+
+    public void setRelations(List<Relation> relations) {
+        this.relations = relations;
     }
 
     public List<ReleaseGroup> getReleaseGroups() {
