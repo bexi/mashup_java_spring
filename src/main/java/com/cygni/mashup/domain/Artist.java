@@ -1,17 +1,20 @@
 package com.cygni.mashup.domain;
 
+import com.cygni.mashup.repository.ReleaseGroup;
+
 import java.util.List;
 
 public class Artist {
-    private String mbid;
+    private final String mbid;
     private String description;
+    private List<ReleaseGroup> albums;
+
+    public Artist(String mbid){
+        this.mbid = mbid;
+    }
 
     public String getMbid() {
         return mbid;
-    }
-
-    public void setMbid(String mbid) {
-        this.mbid = mbid;
     }
 
     public String getDescription() {
@@ -22,14 +25,13 @@ public class Artist {
         this.description = description;
     }
 
-    public List<Album> getAlbums() {
+    public List<ReleaseGroup> getAlbums() {
         return albums;
     }
 
-    public void setAlbums(List<Album> albums) {
+    public void setAlbums(List<ReleaseGroup> albums) {
         this.albums = albums;
     }
 
-    private List<Album> albums;
 }
 
