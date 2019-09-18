@@ -19,6 +19,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLEncoder;
+
 /**
  * Combine data from the other three services: MusicBrainz, Wikidata/Wikipedia and CoverArt
  */
@@ -54,7 +59,13 @@ public class MashupService {
         return "";
     }
 
-    private String getWikipediaID(List<Relation> relations) throws NoSuchElementException {
+    /**
+     * Get the wikipediaID from the relations data
+     * @param relations
+     * @return wikipediaID
+     * @throws NoSuchElementException
+     */
+    private String getWikipediaID(List<Relation> relations) throws NoSuchElementException{
         Pair<String, String> relationsData = getRelationsData(relations);
         String type = relationsData.getKey();
         String ID = relationsData.getValue(); // the id for either wikipedia or wikidata
@@ -62,11 +73,13 @@ public class MashupService {
         if(type.equals(WIKIPEDIA_TYPE)){
             return ID;
         }else if(type.equals(WIKIDATA_TYPE)){
-            // call wikidata to retrive wikipediaID
-            return getWikipediaIdFromWikiData(ID);
-        }else{
-            throw new NoSuchElementException();
-        }
+            // retrive wikipediaID from wikiData
+            try {
+                return getWikipediaIdFromWikiData(ID);
+            } catch (UnsupportedEncodingException e) {
+                throw new NoSuchElementException();
+            }
+        }else throw new NoSuchElementException();
     }
 
     /**
@@ -75,63 +88,41 @@ public class MashupService {
      * @return Pair<TypeOfRelation, ID>
      */
     private Pair<String, String> getRelationsData(List<Relation> relations) throws NoSuchElementException {
+        // find a relation with a type of wikidata or wikipedia
         Optional<Relation> wikipediaOrWikidata = relations.stream()
                 .filter(relation -> (
                         relation.getType().equals(WIKIPEDIA_TYPE) || relation.getType().equals(WIKIDATA_TYPE)))
                 .findFirst();
-        //.collect(Collectors.toList());
+
         if(wikipediaOrWikidata.isPresent()){
+            // get the ID to either wikipedia or wikidata from the url
             Relation wikipediaOrWikiDataRelation = wikipediaOrWikidata.get();
             String urlResource = wikipediaOrWikiDataRelation.getUrlResource();
             String[] parts = urlResource.split("/");
             String id = parts[parts.length-1];
+
             return new Pair<String, String>(wikipediaOrWikiDataRelation.getType(), id);
-        }else{
-            throw new NoSuchElementException();
-        }
+        }else throw new NoSuchElementException();
     }
 
-    private String getWikipediaIdFromWikiData(String ID){
-        /**
-         * let wikiDataApiUrl = `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${wikiDataID}&format=json&props=sitelinks`;
-         *       let wikiData = await axios.get(wikiDataApiUrl);
-         *       // find the wikipedia-ID from second api-response
-         *       let wikipediaID = wikiData.data.entities[wikiDataID].sitelinks.enwiki.title;
-         **/
+    private String getWikipediaIdFromWikiData(String ID) throws UnsupportedEncodingException {
+
+        final String wikiTitle = "enwiki";
         final String wikiDataAPI_1 = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids=";
         final String wikiDataAPI_2 = "&format=json&props=sitelinks";
         String url = wikiDataAPI_1 + ID + wikiDataAPI_2;
 
+        // TODO - move up restTemplate to parent
         RestTemplate restTemplate = new RestTemplate();
-
+        // fetch wikidata - in this response we have the wikipedia ID
         WikiData result =  restTemplate.getForObject(url, WikiData.class);
 
-        //logger.info(result.getEntities().get(0).getSitelinks().toString());
+        // TODO error handling - check http status code
 
         Map<String, Entity> entities = result.getEntities();
-        entities.forEach((k,v)->{
-            logger.info("Key : " + k + " Value : " + v);
-            logger.info(String.valueOf((k.equals(ID))));
+        String wikipediaID = entities.get(ID).getSitelinks().get(wikiTitle).getTitle();
+        String encodedWikipediaID = URLEncoder.encode(wikipediaID, "UTF-8");
 
-        });
-
-        logger.info(entities.get(ID).getSitelinks().toString());
-        String wikipediaID = entities.get(ID).getSitelinks().get("enwiki").getTitle();
-        logger.info(wikipediaID);
-
-       /* Map<String, Object> properties = result.getProperties();
-        List<String> keys = new ArrayList<String>();
-        properties.forEach((k,v)->{
-            logger.info("Key : " + k + " Value : " + v);
-            keys.add(k);
-        });
-        logger.info("Length" + keys.size());
-        logger.info(properties.get(keys.get(0)).getClass().toString());
-        LinkedHashMap<Object, Object> ex = (LinkedHashMap<Object, Object>) properties.get(keys.get(0));
-        ex.forEach((k,v)->{
-            logger.info("Key : " + k + " Value : " + v);
-        });*/
-
-        return "";
+        return encodedWikipediaID;
     }
 }
