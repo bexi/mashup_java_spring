@@ -1,6 +1,6 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.domain.*;
+import com.cygni.mashup.repository.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,18 +20,19 @@ public class MashupService {
     Logger logger = LoggerFactory.getLogger(MashupService.class);
 
     @Async
-    public CompletableFuture<Artist> getArtistMashup(String mbid) throws InterruptedException, ExecutionException {
+    public CompletableFuture<MusicbrainzData> getArtistMashup(String mbid) throws InterruptedException, ExecutionException {
         // TODO Combine Data from all API-calls
         // wait for information from musicbrainz - this info is needed to make the later api-calls
-        Artist artist = (Artist) (new MusicBrainzService()).getMusicBrainzInformation(mbid).get();
+        MusicbrainzData musicbrainzData = (MusicbrainzData) (new MusicBrainzService()).getMusicBrainzInformation(mbid).get();
 
-        String description = (new WikipediaService()).getWikipediaDescription(artist); // TODO: make async
-        List<String> imageUrl = (new CoverArtService()).getAlbumImageUrls(artist);
-
-        // Make call to CoverArt - Async
+        musicbrainzData.setMbid(mbid);
+        String description = (new WikipediaService()).getWikipediaDescription(musicbrainzData); // TODO: make async
+        List<String> imageUrl = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO: implement and make async
 
         // Wait for the last API call to finish
 
-        return CompletableFuture.completedFuture(artist);
+        // Add new data to the artist object
+
+        return CompletableFuture.completedFuture(musicbrainzData);
     }
 }

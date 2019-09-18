@@ -1,4 +1,4 @@
-package com.cygni.mashup.domain;
+package com.cygni.mashup.repository;
 
 import java.util.List;
 

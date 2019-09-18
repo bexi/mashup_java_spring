@@ -1,30 +1,68 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.domain.Artist;
-import com.cygni.mashup.domain.Entity;
-import com.cygni.mashup.domain.Relation;
-import com.cygni.mashup.domain.WikiData;
+import com.cygni.mashup.repository.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.util.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 public class WikipediaService {
     private static final String WIKIPEDIA_TYPE = "wikipedia";
     private static final String WIKIDATA_TYPE = "wikidata";
 
-    public String getWikipediaDescription(Artist artist){
+    Logger logger = LoggerFactory.getLogger(MashupService.class);
 
-        String ID = getWikipediaID(artist.getRelations());
+    public String getWikipediaDescription(MusicbrainzData musicbrainzData){
 
-        // fetch description from wikipedia
+        String ID = getWikipediaID(musicbrainzData.getRelations());
+        String url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=" + ID;
 
-        return "";
+        String TEST = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=Nirvana (band)";
+        RestTemplate restTemplate = new RestTemplate();
+        //WikipediaData wikipediaData =  restTemplate.getForObject(TEST, WikipediaData.class);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode root = null;
+        try {
+            root = mapper.readTree(response.getBody());
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO throw exception
+        }
+        String description = getDescriptionFromJson(root);
+
+        return description;
+    }
+
+    private static List<String> getKeys(JsonNode data) {
+        List<String> keys = new ArrayList<>();
+        for (Iterator<Map.Entry<String, JsonNode>> it = data.fields(); it.hasNext();) {
+            Map.Entry<String, JsonNode> field = it.next();
+            String key = field.getKey();
+            //JsonNode value = field.getValue();
+            keys.add(key);
+        }
+        return keys;
+    }
+
+    private String getDescriptionFromJson(JsonNode json){
+        //JsonNode root = mapper.readTree(json.getBody());
+        JsonNode name = json.path("query").path("pages");
+        List<String> keys = getKeys(name);
+        logger.info(keys.toString());
+        logger.info(name.get(keys.get(0)).get("extract").toString());
+        //String color = jsonNode.get("color").asText();
+        return (name.get(keys.get(0)).get("extract").toString());
     }
 
     /**
@@ -81,6 +119,7 @@ public class WikipediaService {
      */
     private String getWikipediaIdFromWikiData(String ID) throws UnsupportedEncodingException {
 
+        // TODO String string = String.format("A String %s %2d", aStringVar, anIntVar);
         final String wikiTitle = "enwiki";
         final String wikiDataAPI_1 = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids=";
         final String wikiDataAPI_2 = "&format=json&props=sitelinks";
@@ -95,8 +134,8 @@ public class WikipediaService {
 
         Map<String, Entity> entities = result.getEntities();
         String wikipediaID = entities.get(ID).getSitelinks().get(wikiTitle).getTitle();
-        String encodedWikipediaID = URLEncoder.encode(wikipediaID, "UTF-8");
+        //String encodedWikipediaID = URLEncoder.encode(wikipediaID, "UTF-8");
 
-        return encodedWikipediaID;
+        return wikipediaID;
     }
 }

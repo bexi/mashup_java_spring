@@ -1,6 +1,6 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.domain.Artist;
+import com.cygni.mashup.repository.MusicbrainzData;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -17,7 +17,7 @@ public class MusicBrainzService {
         //String localUrl = "http://localhost:8080/fulldata.json";
         RestTemplate restTemplate = new RestTemplate();
 
-        Artist result =  restTemplate.getForObject(publicUrl, Artist.class);
+        MusicbrainzData result =  restTemplate.getForObject(publicUrl, MusicbrainzData.class);
         return CompletableFuture.completedFuture(result);
     }
 

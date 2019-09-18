@@ -1,21 +1,10 @@
 package com.cygni.mashup.domain;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.util.List;
 
-//@JsonIgnoreProperties(ignoreUnknown=true)
-// The @JsonIgnoreProperties annotation tells Spring to ignore any attributes not listed in the class.
 public class Artist {
-
-    @JsonProperty("id")
     private String mbid;
-
-    @JsonProperty("release-groups")
-    private List<ReleaseGroup> releaseGroups;
-
-    @JsonProperty("relations")
-    private List<Relation> relations;
+    private String description;
 
     public String getMbid() {
         return mbid;
@@ -25,19 +14,22 @@ public class Artist {
         this.mbid = mbid;
     }
 
-    public List<Relation> getRelations() {
-        return relations;
+    public String getDescription() {
+        return description;
     }
 
-    public void setRelations(List<Relation> relations) {
-        this.relations = relations;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
-    public List<ReleaseGroup> getReleaseGroups() {
-        return releaseGroups;
+    public List<Album> getAlbums() {
+        return albums;
     }
 
-    public void setReleaseGroups(List<ReleaseGroup> releaseGroups) {
-        this.releaseGroups = releaseGroups;
+    public void setAlbums(List<Album> albums) {
+        this.albums = albums;
     }
+
+    private List<Album> albums;
 }
+

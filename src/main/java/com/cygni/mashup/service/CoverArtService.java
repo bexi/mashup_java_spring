@@ -1,12 +1,12 @@
 package com.cygni.mashup.service;
 
-import com.cygni.mashup.domain.Artist;
+import com.cygni.mashup.repository.MusicbrainzData;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CoverArtService {
-    public List<String> getAlbumImageUrls(Artist artist){
-        return new ArrayList<>(); 
+    public List<String> getAlbumImageUrls(MusicbrainzData musicbrainzData){
+        return new ArrayList<>();
     }
 }
