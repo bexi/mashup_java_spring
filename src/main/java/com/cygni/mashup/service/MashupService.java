@@ -3,6 +3,7 @@ package com.cygni.mashup.service;
 import com.cygni.mashup.domain.Artist;
 
 import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
+import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -34,13 +36,13 @@ public class MashupService {
         musicbrainzData.setMbid(mbid);
 
         String description = (String)(new WikipediaService()).getWikipediaDescription(musicbrainzData).get(); // TODO: make async
-        //List<String> imageUrl = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO: implement and make async
+        List<ReleaseGroup> albums = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO make async
 
         // Wait for the last API call to finish
 
         // Add new data to the artist object
         artist.setDescription(description);
-        // map images to albums
+        artist.setAlbums(albums);
 
         return CompletableFuture.completedFuture(artist);
     }

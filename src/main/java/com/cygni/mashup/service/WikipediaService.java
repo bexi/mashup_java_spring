@@ -34,8 +34,6 @@ public class WikipediaService {
         RestTemplate restTemplate = new RestTemplate();
         //WikipediaData wikipediaData =  restTemplate.getForObject(TEST, WikipediaData.class);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-
         ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = null;

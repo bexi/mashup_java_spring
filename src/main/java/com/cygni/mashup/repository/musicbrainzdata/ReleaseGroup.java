@@ -25,4 +25,8 @@ public class ReleaseGroup {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public String getId(){
+        return this.id;
+    }
 }
