@@ -4,8 +4,7 @@ import com.cygni.mashup.repository.ImageData;
 import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -17,37 +16,40 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class ImageService {
-    Logger logger = LoggerFactory.getLogger(MashupService.class);
+
+    private static final String coverArtAPI = "http://coverartarchive.org/release-group/";
 
     @Async
     public CompletableFuture<ReleaseGroup> getAlbumImage(ReleaseGroup album) {
 
-        // create URL
-        String url = "http://coverartarchive.org/release-group/" + album.getId();
+        String url = coverArtAPI + album.getId();
 
         try {
-            logger.info("Running request on thread {}", Thread.currentThread().getName());
-            // make http call
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
-            // get image and add it to the album
-            String image = getImageUrl(response.getBody());
-            album.setImageUrl(image);
+            // get image url string and add it to the album object
+            String imageUrl = getImageUrl(response.getBody());
+            album.setImageUrl(imageUrl);
+
             return CompletableFuture.completedFuture(album);
+
         } catch (HttpStatusCodeException e) {
-            // LOGGER.debug(" Unable to get cover art for album '{}', got HTTP status code: {}", releaseGroup.getTitle(), e.getStatusCode());
             return CompletableFuture.completedFuture(null); // ApiResponse.error(e)
             // TODO: handle error
         }
     }
 
+    /**
+     * Get the imageUrl string from the response body (json)
+     * @param body
+     * @return
+     */
     public String getImageUrl(String body) {
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = null;
         try {
             root = mapper.readTree(body);
-
             ImageData imageData = mapper.convertValue(root, ImageData.class);
 
             return imageData.getImage();

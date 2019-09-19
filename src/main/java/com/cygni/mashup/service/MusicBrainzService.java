@@ -9,17 +9,17 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class MusicBrainzService {
+    private static final String url1 = "http://musicbrainz.org/ws/2/artist/";
+    private static final String url2 = "?inc=url-rels+release-groups&fmt=json";
 
     @Async
     public CompletableFuture getMusicBrainzInformation(String mbid){
-        String url1 = "http://musicbrainz.org/ws/2/artist/";
-        String url2 = "?inc=url-rels+release-groups&fmt=json";
-        String publicUrl = url1 + mbid + url2;
 
-        //String localUrl = "http://localhost:8080/fulldata.json";
+        String apiUrl = url1 + mbid + url2;
+
         RestTemplate restTemplate = new RestTemplate();
 
-        MusicbrainzData result =  restTemplate.getForObject(publicUrl, MusicbrainzData.class);
+        MusicbrainzData result =  restTemplate.getForObject(apiUrl, MusicbrainzData.class);
         return CompletableFuture.completedFuture(result);
     }
 

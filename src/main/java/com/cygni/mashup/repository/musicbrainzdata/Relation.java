@@ -3,6 +3,11 @@ package com.cygni.mashup.repository.musicbrainzdata;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Relation {
+    @JsonProperty("type")
+    private String type; // we are interested in the type "wikidata" or "wikipedia"
+    @JsonProperty("url")
+    private RelationUrl url; // contains the id to wikidata or wikipedia
+
     public String getType() {
         return type;
     }
@@ -23,10 +28,6 @@ public class Relation {
         return this.url.resource;
     }
 
-    @JsonProperty("type")
-    private String type; // we are interested in the type "wikidata" or "wikipedia"
-    @JsonProperty("url")
-    private RelationUrl url; // contains the id to wikidata or wikipedia
 }
 
 class RelationUrl {

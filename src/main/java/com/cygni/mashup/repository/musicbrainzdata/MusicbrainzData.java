@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 /**
- * Data class to be mapped from a response from MUSICBRAINZ
+ * data class to be mapped from a response from musicbrainz
  */
 public class MusicbrainzData {
 

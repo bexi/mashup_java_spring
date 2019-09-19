@@ -28,7 +28,7 @@ public class MashupController {
      * @throws InterruptedException
      */
     @RequestMapping("/artist")
-    public CompletableFuture<Artist> getArtistInfo(@RequestParam String mbid)  {
+    public Artist getArtistInfo(@RequestParam String mbid)  {
         return mashupService.getArtistMashup(mbid);
     }
 }

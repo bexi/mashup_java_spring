@@ -21,22 +21,27 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class WikipediaService {
+    // a Relations object have a type and we are interested in these two
     private static final String WIKIPEDIA_TYPE = "wikipedia";
     private static final String WIKIDATA_TYPE = "wikidata";
 
-    Logger logger = LoggerFactory.getLogger(MashupService.class);
+    private static final String wikiDataAPI_1 = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids=";
+    private static final String wikiDataAPI_2 = "&format=json&props=sitelinks";
+
+    private static final String wikipediaAPI = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=";
+
+    // the title we are interested in
+    private static final String wikiTitle = "enwiki";
 
     @Async
     public CompletableFuture getWikipediaDescription(MusicbrainzData musicbrainzData){
 
         String ID = getWikipediaID(musicbrainzData.getRelations());
-        String url = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=" + ID;
+        String apiUrl = wikipediaAPI + ID;
 
-        String TEST = "https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts&exintro=true&redirects=true&titles=Nirvana (band)";
         RestTemplate restTemplate = new RestTemplate();
-        //WikipediaData wikipediaData =  restTemplate.getForObject(TEST, WikipediaData.class);
 
-        ResponseEntity<String> response = restTemplate.getForEntity(url, String.class);
+        ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = null;
         try {
@@ -50,24 +55,30 @@ public class WikipediaService {
         return CompletableFuture.completedFuture(description);
     }
 
+    /**
+     * Get all the keys from a JsonNode
+     * @param data
+     * @return
+     */
     private static List<String> getKeys(JsonNode data) {
         List<String> keys = new ArrayList<>();
         for (Iterator<Map.Entry<String, JsonNode>> it = data.fields(); it.hasNext();) {
             Map.Entry<String, JsonNode> field = it.next();
             String key = field.getKey();
-            //JsonNode value = field.getValue();
             keys.add(key);
         }
         return keys;
     }
 
+    /**
+     * Get the description from the JSON data
+     * @param json
+     * @return
+     */
     private String getDescriptionFromJson(JsonNode json){
-        //JsonNode root = mapper.readTree(json.getBody());
         JsonNode name = json.path("query").path("pages");
         List<String> keys = getKeys(name);
-        logger.info(keys.toString());
-        logger.info(name.get(keys.get(0)).get("extract").toString());
-        //String color = jsonNode.get("color").asText();
+
         return (name.get(keys.get(0)).get("extract").toString());
     }
 
@@ -84,13 +95,10 @@ public class WikipediaService {
 
         if(type.equals(WIKIPEDIA_TYPE)){
             return ID;
+
         }else if(type.equals(WIKIDATA_TYPE)){
-            // retrive wikipediaID from wikiData
-            try {
-                return getWikipediaIdFromWikiData(ID);
-            } catch (UnsupportedEncodingException e) {
-                throw new NoSuchElementException();
-            }
+            return getWikipediaIdFromWikiData(ID);
+
         }else throw new NoSuchElementException();
     }
 
@@ -123,24 +131,14 @@ public class WikipediaService {
      * @return
      * @throws UnsupportedEncodingException
      */
-    private String getWikipediaIdFromWikiData(String ID) throws UnsupportedEncodingException {
-
-        // TODO String string = String.format("A String %s %2d", aStringVar, anIntVar);
-        final String wikiTitle = "enwiki";
-        final String wikiDataAPI_1 = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids=";
-        final String wikiDataAPI_2 = "&format=json&props=sitelinks";
+    private String getWikipediaIdFromWikiData(String ID) {
         String url = wikiDataAPI_1 + ID + wikiDataAPI_2;
 
-        // TODO - move up restTemplate to parent
         RestTemplate restTemplate = new RestTemplate();
-        // fetch wikidata - in this response we have the wikipedia ID
         WikiData result =  restTemplate.getForObject(url, WikiData.class);
-
-        // TODO error handling - check http status code
 
         Map<String, Entity> entities = result.getEntities();
         String wikipediaID = entities.get(ID).getSitelinks().get(wikiTitle).getTitle();
-        //String encodedWikipediaID = URLEncoder.encode(wikipediaID, "UTF-8");
 
         return wikipediaID;
     }

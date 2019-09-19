@@ -2,6 +2,9 @@ package com.cygni.mashup.repository.wikidata;
 
 import java.util.Map;
 
+/**
+ * data class to be mapped from a response from wikidata
+ */
 public class WikiData {
     private final Map<String, Entity> entities;
     private final Integer success;

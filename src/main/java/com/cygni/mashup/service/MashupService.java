@@ -6,13 +6,9 @@ import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -21,6 +17,7 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class MashupService {
 
+    // service dependencies
     private final CoverArtService coverArtService;
     private final MusicBrainzService musicBrainzService;
     private final WikipediaService wikipediaService;
@@ -33,14 +30,12 @@ public class MashupService {
         this.wikipediaService = wikipediaService;
     }
 
-    @Async
-    public CompletableFuture<Artist> getArtistMashup(String mbid) {
+    public Artist getArtistMashup(String mbid) {
 
+        // the artist object which are to be sent with the response
         Artist artist = new Artist(mbid);
 
-        // TODO Combine Data from all API-calls
-        // wait for information from musicbrainz - this info is needed to make the later api-calls
-        MusicbrainzData musicbrainzData = null; // blocking
+        MusicbrainzData musicbrainzData = null;
         try {
             musicbrainzData = (MusicbrainzData) musicBrainzService.getMusicBrainzInformation(mbid).get();
         } catch (InterruptedException | ExecutionException e) {
@@ -50,14 +45,15 @@ public class MashupService {
         artist.setAlbums(musicbrainzData.getReleaseGroups());
         musicbrainzData.setMbid(mbid);
 
-        String description = null; //
+        // TODO make these two requests at the same time, wait for the last one
+        String description = null;
         try {
             description = (String) wikipediaService.getWikipediaDescription(musicbrainzData).get();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
 
-        List<ReleaseGroup> albums = null; //
+        List<ReleaseGroup> albums = null;
         try {
             albums = coverArtService.getAlbumImageUrls(musicbrainzData).get();
         } catch (InterruptedException e) {
@@ -66,14 +62,11 @@ public class MashupService {
             e.printStackTrace();
         }
 
-        // Wait for the last API call to finish
-
-        // Add new data to the artist object
+        // add new data to the artist object
         artist.setDescription(description);
         artist.setAlbums(albums);
 
-        return CompletableFuture.completedFuture(artist);
+        return artist;
     }
-
 
 }
