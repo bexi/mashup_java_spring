@@ -11,6 +11,12 @@ import java.util.concurrent.ExecutionException;
 
 @RestController
 public class MashupController {
+
+    private final MashupService mashupService;
+
+    public MashupController(MashupService mashupService) {
+        this.mashupService = mashupService;
+    }
     /**
      * Returns an Artist Object (mbid, description, albums (with images))
      *
@@ -22,10 +28,8 @@ public class MashupController {
      * @throws InterruptedException
      */
     @RequestMapping("/artist")
-    public Artist getArtistInfo(@RequestParam String mbid) throws ExecutionException, InterruptedException {
-        CompletableFuture result = (new MashupService()).getArtistMashup(mbid);
-        Artist artistData = (Artist) result.get(); // blocking
-        return artistData;
+    public CompletableFuture<Artist> getArtistInfo(@RequestParam String mbid)  {
+        return mashupService.getArtistMashup(mbid);
     }
 }
 

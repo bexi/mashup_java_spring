@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+@Service
 public class WikipediaService {
     private static final String WIKIPEDIA_TYPE = "wikipedia";
     private static final String WIKIDATA_TYPE = "wikidata";

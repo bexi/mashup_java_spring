@@ -21,22 +21,50 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class MashupService {
 
+    private final CoverArtService coverArtService;
+    private final MusicBrainzService musicBrainzService;
+    private final WikipediaService wikipediaService;
+
     Logger logger = LoggerFactory.getLogger(MashupService.class);
 
+    public MashupService(MusicBrainzService musicBrainzService, WikipediaService wikipediaService, CoverArtService coverArtService) {
+        this.musicBrainzService = musicBrainzService;
+        this.coverArtService = coverArtService;
+        this.wikipediaService = wikipediaService;
+    }
+
     @Async
-    public CompletableFuture<Artist> getArtistMashup(String mbid) throws InterruptedException, ExecutionException {
+    public CompletableFuture<Artist> getArtistMashup(String mbid) {
 
         Artist artist = new Artist(mbid);
 
         // TODO Combine Data from all API-calls
         // wait for information from musicbrainz - this info is needed to make the later api-calls
-        MusicbrainzData musicbrainzData = (MusicbrainzData) (new MusicBrainzService()).getMusicBrainzInformation(mbid).get(); // blocking
+        MusicbrainzData musicbrainzData = null; // blocking
+        try {
+            musicbrainzData = (MusicbrainzData) musicBrainzService.getMusicBrainzInformation(mbid).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException(e);
+        }
 
         artist.setAlbums(musicbrainzData.getReleaseGroups());
         musicbrainzData.setMbid(mbid);
 
-        String description = (String)(new WikipediaService()).getWikipediaDescription(musicbrainzData).get(); // TODO: make async
-        List<ReleaseGroup> albums = (new CoverArtService()).getAlbumImageUrls(musicbrainzData); // TODO make async
+        String description = null; //
+        try {
+            description = (String) wikipediaService.getWikipediaDescription(musicbrainzData).get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        List<ReleaseGroup> albums = null; //
+        try {
+            albums = coverArtService.getAlbumImageUrls(musicbrainzData).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         // Wait for the last API call to finish
 
