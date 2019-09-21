@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -21,6 +20,8 @@ import java.util.concurrent.CompletableFuture;
 
 @Service
 public class WikipediaService {
+    Logger logger = LoggerFactory.getLogger(MashupService.class);
+
     // a Relations object have a type and we are interested in these two
     private static final String WIKIPEDIA_TYPE = "wikipedia";
     private static final String WIKIDATA_TYPE = "wikidata";
@@ -35,6 +36,7 @@ public class WikipediaService {
 
     @Async
     public CompletableFuture getWikipediaDescription(MusicbrainzData musicbrainzData){
+        String description = null;
 
         String ID = getWikipediaID(musicbrainzData.getRelations());
         String apiUrl = wikipediaAPI + ID;
@@ -46,13 +48,74 @@ public class WikipediaService {
         JsonNode root = null;
         try {
             root = mapper.readTree(response.getBody());
+            description = getDescriptionFromJson(root);
         } catch (IOException e) {
-            e.printStackTrace();
-            // TODO throw exception
+            logger.info("Was not able to parse response from Wikipedia");
         }
-        String description = getDescriptionFromJson(root);
 
         return CompletableFuture.completedFuture(description);
+    }
+
+    /**
+     * Get the type and ID from the "wikipedia" or "wikidata" relation
+     * @param relations
+     * @return Pair<TypeOfRelation, ID>
+     */
+    private Pair<String, String> getRelationsData(List<Relation> relations) throws NoSuchElementException {
+        // find a relation with a type of wikidata or wikipedia
+        Optional<Relation> wikipediaOrWikidata = relations.stream()
+                .filter(relation -> (
+                        relation.getType().equals(WIKIPEDIA_TYPE) || relation.getType().equals(WIKIDATA_TYPE)))
+                .findFirst(); // should only be one element from the filter function
+
+        if(wikipediaOrWikidata.isPresent()){
+            // get the ID to either wikipedia or wikidata from the url
+            Relation wikipediaOrWikiDataRelation = wikipediaOrWikidata.get();
+            String urlResource = wikipediaOrWikiDataRelation.getUrlResource();
+            String[] parts = urlResource.split("/");
+            String id = parts[parts.length-1];
+
+            return new Pair<String, String>(wikipediaOrWikiDataRelation.getType(), id);
+
+        }else throw new NoSuchElementException();
+    }
+
+    /**
+     * Get the wikipediaID from the relations data
+     * @param relations
+     * @return wikipediaID
+     * @throws NoSuchElementException
+     */
+    private String getWikipediaID(List<Relation> relations) throws NoSuchElementException{
+        Pair<String, String> relationsData = getRelationsData(relations);
+        String type = relationsData.getKey(); // type is either wikipedia or wikidata
+        String ID = relationsData.getValue(); // the id for either wikipedia or wikidata
+
+        if(type.equals(WIKIPEDIA_TYPE)){
+            return ID;
+
+        }else if(type.equals(WIKIDATA_TYPE)){
+            return getWikipediaIdFromWikiData(ID);
+
+        }else throw new NoSuchElementException();
+    }
+
+    /**
+     * Get the wikipedia ID from wikiData
+     * @param ID
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+    private String getWikipediaIdFromWikiData(String ID) {
+        String url = wikiDataAPI_1 + ID + wikiDataAPI_2;
+
+        RestTemplate restTemplate = new RestTemplate();
+        WikiData result =  restTemplate.getForObject(url, WikiData.class);
+
+        Map<String, Entity> entities = result.getEntities();
+        String wikipediaID = entities.get(ID).getSitelinks().get(wikiTitle).getTitle();
+
+        return wikipediaID;
     }
 
     /**
@@ -78,68 +141,7 @@ public class WikipediaService {
     private String getDescriptionFromJson(JsonNode json){
         JsonNode name = json.path("query").path("pages");
         List<String> keys = getKeys(name);
-
+        // it always have at least one element
         return (name.get(keys.get(0)).get("extract").toString());
-    }
-
-    /**
-     * Get the wikipediaID from the relations data
-     * @param relations
-     * @return wikipediaID
-     * @throws NoSuchElementException
-     */
-    private String getWikipediaID(List<Relation> relations) throws NoSuchElementException{
-        Pair<String, String> relationsData = getRelationsData(relations);
-        String type = relationsData.getKey(); // type is either wikipedia or wikidata
-        String ID = relationsData.getValue(); // the id for either wikipedia or wikidata
-
-        if(type.equals(WIKIPEDIA_TYPE)){
-            return ID;
-
-        }else if(type.equals(WIKIDATA_TYPE)){
-            return getWikipediaIdFromWikiData(ID);
-
-        }else throw new NoSuchElementException();
-    }
-
-    /**
-     * Get the type and ID from the "wikipedia" or "wikidata" relation
-     * @param relations
-     * @return Pair<TypeOfRelation, ID>
-     */
-    private Pair<String, String> getRelationsData(List<Relation> relations) throws NoSuchElementException {
-        // find a relation with a type of wikidata or wikipedia
-        Optional<Relation> wikipediaOrWikidata = relations.stream()
-                .filter(relation -> (
-                        relation.getType().equals(WIKIPEDIA_TYPE) || relation.getType().equals(WIKIDATA_TYPE)))
-                .findFirst(); // should only be one element from the filter function
-
-        if(wikipediaOrWikidata.isPresent()){
-            // get the ID to either wikipedia or wikidata from the url
-            Relation wikipediaOrWikiDataRelation = wikipediaOrWikidata.get();
-            String urlResource = wikipediaOrWikiDataRelation.getUrlResource();
-            String[] parts = urlResource.split("/");
-            String id = parts[parts.length-1];
-
-            return new Pair<String, String>(wikipediaOrWikiDataRelation.getType(), id);
-        }else throw new NoSuchElementException();
-    }
-
-    /**
-     * Get the wikipedia ID from wikiData
-     * @param ID
-     * @return
-     * @throws UnsupportedEncodingException
-     */
-    private String getWikipediaIdFromWikiData(String ID) {
-        String url = wikiDataAPI_1 + ID + wikiDataAPI_2;
-
-        RestTemplate restTemplate = new RestTemplate();
-        WikiData result =  restTemplate.getForObject(url, WikiData.class);
-
-        Map<String, Entity> entities = result.getEntities();
-        String wikipediaID = entities.get(ID).getSitelinks().get(wikiTitle).getTitle();
-
-        return wikipediaID;
     }
 }

@@ -43,6 +43,5 @@ public class CoverArtService {
                 );
 
         return albumFutures;
-
     }
 }

@@ -19,12 +19,12 @@ import java.util.concurrent.ExecutionException;
 @Service
 public class MashupService {
 
+    Logger logger = LoggerFactory.getLogger(MashupService.class);
+
     // service dependencies
     private final CoverArtService coverArtService;
     private final MusicBrainzService musicBrainzService;
     private final WikipediaService wikipediaService;
-
-    Logger logger = LoggerFactory.getLogger(MashupService.class);
 
     public MashupService(MusicBrainzService musicBrainzService, WikipediaService wikipediaService, CoverArtService coverArtService) {
         this.musicBrainzService = musicBrainzService;

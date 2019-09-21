@@ -34,8 +34,8 @@ public class ImageService {
             return CompletableFuture.completedFuture(album);
 
         } catch (HttpStatusCodeException e) {
-            return CompletableFuture.completedFuture(null); // ApiResponse.error(e)
-            // TODO: handle error
+            // if an image was not able to be fetched then set it to null
+            return CompletableFuture.completedFuture(null);
         }
     }
 
@@ -51,13 +51,9 @@ public class ImageService {
         try {
             root = mapper.readTree(body);
             ImageData imageData = mapper.convertValue(root, ImageData.class);
-
             return imageData.getImage();
-
         } catch (IOException e) {
-            e.printStackTrace();
-            // TODO throw exception
-            return "null";
+            return null;
         }
     }
 }
