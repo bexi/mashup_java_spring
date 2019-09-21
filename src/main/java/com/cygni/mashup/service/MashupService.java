@@ -1,16 +1,14 @@
 package com.cygni.mashup.service;
 
 import com.cygni.mashup.domain.Artist;
-
 import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -44,18 +42,20 @@ public class MashupService {
         artist.setDescription(description);
         musicbrainzData.setMbid(mbid);
 
-        // TODO make these two requests at the same time, wait for the last one
+        CompletableFuture<String> descriptionFuture = wikipediaService.getWikipediaDescription(musicbrainzData);
+        CompletableFuture<List<ReleaseGroup>> albumsFuture = coverArtService.getAlbumImageUrls(musicbrainzData);
+
         try {
-            description = (String) wikipediaService.getWikipediaDescription(musicbrainzData).get();
+            description = descriptionFuture.get();
             artist.setDescription(description);
-        } catch (InterruptedException | ExecutionException e) {
+        }  catch (InterruptedException | ExecutionException e) {
             logger.info(e.getCause().toString());
         }
 
         try {
-            albums = coverArtService.getAlbumImageUrls(musicbrainzData).get();
+            albums = albumsFuture.get();
             artist.setAlbums(albums);
-        } catch (InterruptedException | ExecutionException e) {
+        }  catch (InterruptedException | ExecutionException e) {
             logger.info(e.getCause().toString());
         }
 
