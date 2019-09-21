@@ -6,7 +6,9 @@ import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import com.cygni.mashup.repository.musicbrainzdata.ReleaseGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -32,39 +34,30 @@ public class MashupService {
 
     public Artist getArtistMashup(String mbid) {
 
-        // the artist object which are to be sent with the response
         Artist artist = new Artist(mbid);
+        String description = null;
+        List<ReleaseGroup> albums = null;
 
-        MusicbrainzData musicbrainzData = null;
-        try {
-            musicbrainzData = (MusicbrainzData) musicBrainzService.getMusicBrainzInformation(mbid).get();
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
-        }
+        MusicbrainzData musicbrainzData = musicBrainzService.getMusicBrainzInformation(mbid);
 
         artist.setAlbums(musicbrainzData.getReleaseGroups());
+        artist.setDescription(description);
         musicbrainzData.setMbid(mbid);
 
         // TODO make these two requests at the same time, wait for the last one
-        String description = null;
         try {
             description = (String) wikipediaService.getWikipediaDescription(musicbrainzData).get();
+            artist.setDescription(description);
         } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            logger.info(e.getCause().toString());
         }
 
-        List<ReleaseGroup> albums = null;
         try {
             albums = coverArtService.getAlbumImageUrls(musicbrainzData).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
+            artist.setAlbums(albums);
+        } catch (InterruptedException | ExecutionException e) {
+            logger.info(e.getCause().toString());
         }
-
-        // add new data to the artist object
-        artist.setDescription(description);
-        artist.setAlbums(albums);
 
         return artist;
     }
