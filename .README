@@ -1,0 +1,14 @@
+Music Mashup Java by Rebecka Reitmaier 2019
+
+Requirements: Java and Maven
+
+Done with Spring boot, async requests to external APIs.
+
+Run the application: mvn spring-boot:run
+Example request: http://localhost:8080/artist?mbid=5b11f4ce-a62d-471e-81fc-a69a8278c7da
+
+Future features:
+* Tests (tests should always be done but focused on other tasks now)
+* Cashing requests, could be locally or a distributed solution preferably
+* Move to cloud where one could scale the application
+* To make it more scalable it could be implemented with e.i. Spring WebFlux
