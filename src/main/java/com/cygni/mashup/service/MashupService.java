@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 /**
  * Combine data from the other three services: MusicBrainz, Wikidata/Wikipedia and CoverArt
@@ -38,7 +39,7 @@ public class MashupService {
 
         MusicbrainzData musicbrainzData = musicBrainzService.getMusicBrainzInformation(mbid);
 
-        artist.setAlbums(musicbrainzData.getReleaseGroups());
+        artist.setAlbums(musicbrainzData.getReleaseGroups().stream().filter(x -> x!=null).collect(Collectors.toList()));
         artist.setDescription(description);
         musicbrainzData.setMbid(mbid);
 

@@ -1,12 +1,12 @@
 package com.cygni.mashup.service;
 
+import com.cygni.mashup.Pair;
 import com.cygni.mashup.repository.musicbrainzdata.MusicbrainzData;
 import com.cygni.mashup.repository.musicbrainzdata.Relation;
 import com.cygni.mashup.repository.wikidata.Entity;
 import com.cygni.mashup.repository.wikidata.WikiData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -88,8 +88,8 @@ public class WikipediaService {
      */
     private String getWikipediaID(List<Relation> relations) throws NoSuchElementException{
         Pair<String, String> relationsData = getRelationsData(relations);
-        String type = relationsData.getKey(); // type is either wikipedia or wikidata
-        String ID = relationsData.getValue(); // the id for either wikipedia or wikidata
+        String type = relationsData.getLeft(); // type is either wikipedia or wikidata
+        String ID = relationsData.getRight(); // the id for either wikipedia or wikidata
 
         if(type.equals(WIKIPEDIA_TYPE)){
             return ID;
